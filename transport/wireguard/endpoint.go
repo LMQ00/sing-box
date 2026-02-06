@@ -13,6 +13,7 @@ import (
 	"unsafe"
 
 	"github.com/sagernet/sing-box/common/dialer"
+	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -104,6 +105,7 @@ func NewEndpoint(options EndpointOptions) (*Endpoint, error) {
 		Context:        options.Context,
 		Logger:         options.Logger,
 		System:         options.System,
+		GSO:            options.GSO,
 		Handler:        options.Handler,
 		UDPTimeout:     options.UDPTimeout,
 		ICMPTimeout:    options.ICMPTimeout,

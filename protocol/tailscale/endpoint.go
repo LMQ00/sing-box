@@ -122,6 +122,7 @@ type Endpoint struct {
 
 	systemInterface     bool
 	systemInterfaceName string
+	systemInterfaceGSO  bool
 	systemInterfaceMTU  uint32
 	keyAuth             bool
 	serverStarted       bool
@@ -164,6 +165,10 @@ func NewEndpoint(ctx context.Context, router adapter.Router, logger log.ContextL
 		udpTimeout = time.Duration(options.UDPTimeout)
 	} else {
 		udpTimeout = C.UDPTimeout
+	}
+	gso := options.SystemInterface
+	if options.SystemInterfaceGSO != nil {
+		gso = *options.SystemInterfaceGSO
 	}
 	var remoteIsDomain bool
 	if options.ControlURL != "" {
@@ -240,6 +245,7 @@ func NewEndpoint(ctx context.Context, router adapter.Router, logger log.ContextL
 		udpTimeout:                 udpTimeout,
 		icmpTimeout:                C.ICMPTimeout,
 		systemInterface:            options.SystemInterface,
+		systemInterfaceGSO:         gso,
 		systemInterfaceName:        options.SystemInterfaceName,
 		systemInterfaceMTU:         options.SystemInterfaceMTU,
 		keyAuth:                    options.AuthKey != "",
@@ -297,7 +303,7 @@ func (t *Endpoint) start() error {
 		tunOptions := tun.Options{
 			Name:                      tunName,
 			MTU:                       mtu,
-			GSO:                       true,
+			GSO:                       t.systemInterfaceGSO,
 			InterfaceScope:            true,
 			InterfaceMonitor:          t.network.InterfaceMonitor(),
 			InterfaceFinder:           t.network.InterfaceFinder(),
