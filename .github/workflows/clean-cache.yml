@@ -1,0 +1,23 @@
+name: Clean Cache
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # 每周日 00:00 UTC
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  clean-cache:
+    name: Clean Actions cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean cache
+        run: |
+          echo "Cleaning Actions cache..."
+          gh cache list --json id --jq '.[].id' | xargs -I {} gh cache delete {}
+          echo "Cache cleaned successfully"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

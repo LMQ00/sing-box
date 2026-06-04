@@ -1,0 +1,70 @@
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 每天 02:00 UTC
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    name: Sync and apply changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Save custom files
+        run: |
+          # 保存修改过的文件
+          mkdir -p /tmp/custom
+          cp .github/workflows/build.yml /tmp/custom/build.yml
+          cp .github/workflows/clean-cache.yml /tmp/custom/clean-cache.yml 2>/dev/null || true
+          cp .github/workflows/sync.yml /tmp/custom/sync.yml 2>/dev/null || true
+          echo "Custom files saved"
+
+      - name: Sync from upstream
+        run: |
+          # 添加上游仓库
+          git remote add upstream https://github.com/reF1nd/sing-box.git || git remote set-url upstream https://github.com/reF1nd/sing-box.git
+          git fetch upstream
+          
+          # 获取上游默认分支
+          UPSTREAM_BRANCH=$(git symbolic-ref refs/remotes/upstream/HEAD 2>/dev/null | sed 's@^refs/remotes/upstream/@@' || echo "main")
+          echo "Upstream branch: $UPSTREAM_BRANCH"
+          
+          # 重置到上游
+          git checkout -B temp upstream/$UPSTREAM_BRANCH
+          
+          echo "Synced from upstream"
+
+      - name: Apply custom changes
+        run: |
+          # 复制自定义文件
+          cp /tmp/custom/build.yml .github/workflows/build.yml
+          cp /tmp/custom/clean-cache.yml .github/workflows/clean-cache.yml
+          cp /tmp/custom/sync.yml .github/workflows/sync.yml
+          
+          echo "Custom changes applied"
+
+      - name: Push to origin
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add .github/workflows/
+          
+          # 检查是否有变更
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          git commit -m "ci: sync from upstream $(date +%Y-%m-%d)"
+          
+          # 推送到主分支
+          git push origin HEAD:main --force || git push origin HEAD:master --force
+          
+          echo "Pushed to repository successfully"
