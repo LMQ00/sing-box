@@ -852,6 +852,15 @@ func (t *Endpoint) onReconfig(cfg *wgcfg.Config, routerCfg *router.Config, dnsCf
 	if (t.cfg != nil && reflect.DeepEqual(t.cfg, cfg)) && (t.dnsCfg != nil && reflect.DeepEqual(t.dnsCfg, dnsCfg)) {
 		return
 	}
+	var inet4Address, inet6Address netip.Addr
+	for _, address := range cfg.Addresses {
+		if address.Addr().Is4() {
+			inet4Address = address.Addr()
+		} else if address.Addr().Is6() {
+			inet6Address = address.Addr()
+		}
+	}
+	t.icmpForwarder.SetLocalAddresses([]netip.Addr{inet4Address}, []netip.Addr{inet6Address})
 	t.cfg = cfg
 	t.dnsCfg = dnsCfg
 

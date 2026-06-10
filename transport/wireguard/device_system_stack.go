@@ -67,6 +67,27 @@ func newSystemStackDevice(options DeviceOptions) (*systemStackDevice, error) {
 		stack:        ipStack,
 		endpoint:     endpoint,
 	}
+	var inet4Address, inet6Address netip.Addr
+	for _, prefix := range options.Address {
+		if prefix.Addr().Is4() {
+			inet4Address = prefix.Addr()
+		} else if prefix.Addr().Is6() {
+			inet6Address = prefix.Addr()
+		}
+	}
+	if options.Handler != nil {
+		ipStack.SetTransportProtocolHandler(tcp.ProtocolNumber, tun.NewTCPForwarder(options.Context, ipStack, options.Handler).HandlePacket)
+		ipStack.SetTransportProtocolHandler(udp.ProtocolNumber, tun.NewUDPForwarder(options.Context, ipStack, options.Handler, options.UDPTimeout).HandlePacket)
+		icmpForwarder := tun.NewICMPForwarder(ipStack, options.Handler, options.Logger)
+		icmpForwarder.SetLocalAddresses([]netip.Addr{inet4Address}, []netip.Addr{inet6Address})
+		ipStack.SetTransportProtocolHandler(icmp.ProtocolNumber4, icmpForwarder.HandlePacket)
+		ipStack.SetTransportProtocolHandler(icmp.ProtocolNumber6, icmpForwarder.HandlePacket)
+		stackDevice.icmpForwarder = icmpForwarder
+	}
+		systemDevice: system,
+		stack:        ipStack,
+		endpoint:     endpoint,
+	}
 	if options.Handler != nil {
 		ipStack.SetTransportProtocolHandler(tcp.ProtocolNumber, tun.NewTCPForwarder(options.Context, ipStack, options.Handler).HandlePacket)
 		ipStack.SetTransportProtocolHandler(udp.ProtocolNumber, tun.NewUDPForwarder(options.Context, ipStack, options.Handler, options.UDPTimeout).HandlePacket)
