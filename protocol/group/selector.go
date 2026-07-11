@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"regexp"
-	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"

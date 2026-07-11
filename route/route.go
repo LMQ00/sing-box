@@ -15,7 +15,6 @@ import (
 	R "github.com/sagernet/sing-box/route/rule"
 	mux "github.com/sagernet/sing-mux"
 	tun "github.com/sagernet/sing-tun"
-	"github.com/sagernet/sing-tun/ping"
 	vmess "github.com/sagernet/sing-vmess"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/buf"
@@ -357,13 +356,6 @@ func (r *Router) PreMatch(metadata adapter.InboundContext, firstPacket []byte) a
 					return continueResult
 				}
 				continue
-			}
-			//goland:noinspection GoDeprecation
-			if action.OverrideDestination && M.IsDomainName(metadata.Domain) {
-				metadata.Destination = M.Socksaddr{
-					Fqdn: metadata.Domain,
-					Port: metadata.Destination.Port,
-				}
 			}
 			if metadata.Domain != "" && metadata.Client != "" {
 				r.logger.DebugContext(ctx, "sniffed packet protocol: ", metadata.Protocol, ", domain: ", metadata.Domain, ", client: ", metadata.Client)

@@ -15,7 +15,6 @@ import (
 	"unsafe"
 
 	"github.com/sagernet/sing-box/common/dialer"
-	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -137,7 +136,6 @@ func NewEndpoint(options EndpointOptions) (*Endpoint, error) {
 		allowedAddress: allowedAddresses,
 		tunDevice:      tunDevice,
 		returnDevice:   &returnDeviceWrapper{Device: tunDevice},
-		natDevice:      natDevice,
 		pauseUpdated:   make(chan struct{}),
 		done:           make(chan struct{}),
 	}, nil
@@ -344,15 +342,6 @@ func (e *Endpoint) Lookup(address netip.Addr) *device.Peer {
 	return e.allowedIPs.Lookup(address.AsSlice())
 }
 
-func (e *Endpoint) NewDirectRouteConnection(metadata adapter.InboundContext, routeContext tun.DirectRouteContext, timeout time.Duration) (tun.DirectRouteDestination, error) {
-	if e.natDevice == nil {
-		return nil, os.ErrInvalid
-	}
-	if err := e.ensureDeviceStarted(e.options.Context); err != nil {
-		return nil, err
-	}
-	return e.natDevice.CreateDestination(metadata, routeContext, timeout)
-}
 func (e *Endpoint) onPauseUpdated(event int) {
 	defer e.notifyPauseUpdated()
 	e.deviceAccess.Lock()

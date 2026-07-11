@@ -17,7 +17,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/batch"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -238,7 +237,7 @@ func (s *LoadBalance) NewPacketConnection(ctx context.Context, conn N.PacketConn
 	s.connection.NewPacketConnection(ctx, s, conn, metadata, onClose)
 }
 
-func (s *LoadBalance) NewDirectRouteConnection(metadata adapter.InboundContext, routeContext tun.DirectRouteContext, timeout time.Duration) (tun.DirectRouteDestination, error) {
+func (s *LoadBalance) NewDirectRouteConnection(metadata adapter.InboundContext, routeContext any, timeout time.Duration) (any, error) {
 	s.group.Touch()
 	selected := s.group.Unwrap(&metadata, true)
 	if selected == nil {

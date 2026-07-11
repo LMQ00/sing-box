@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"net/netip"
+	"time"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
@@ -44,4 +45,18 @@ type OutboundManager interface {
 	Default() Outbound
 	Remove(tag string) error
 	Create(ctx context.Context, router Router, logger log.ContextLogger, tag string, outboundType string, options any) error
+}
+
+// DirectRouteContext is the context for direct route connections.
+// Defined here as the reF1nd sing-tun fork provided this type;
+// when using upstream sing-tun, this is an opaque placeholder.
+type DirectRouteContext = any
+
+// DirectRouteDestination is the result of creating a direct route connection.
+type DirectRouteDestination = any
+
+// DirectRouteOutbound is an outbound that supports direct route connections.
+type DirectRouteOutbound interface {
+	Outbound
+	NewDirectRouteConnection(metadata InboundContext, routeContext any, timeout time.Duration) (any, error)
 }
